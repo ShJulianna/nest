@@ -1,68 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { Book } from './interfaces/book.interface';
+
+import {
+  Model,
+  Connection,
+  HydratedDocument,
+  QueryWithHelpers,
+} from 'mongoose';
+import { InjectModel, InjectConnection } from '@nestjs/mongoose';
+import { Book, BookDocument } from './schemas/book.schema';
+import { CreateBookDto } from './interfaces/book.interface';
 
 @Injectable()
 export class BooksService {
+  constructor(
+    @InjectModel(Book.name) private BookModel: Model<BookDocument>,
+    @InjectConnection() private connection: Connection,
+  ) {}
 
-    private readonly books: Book[] = [
-        {
-            id: "1",
-            title: "Коржики и Президент класса, или Истории о моём друге Ваньке",
-            description: "Веселые рассказы",
-            authors: "Суслин Д. Ю.",
-            favorite: true,
-            fileCover: "string",
-            fileName: "1.pdf",
-            fileBook: "",
-        },
-        {
-            id: "2",
-            title: "Дядя Федор, пес и кот",
-            description: "В книгу включены две повести-сказки Э.Успенского",
-            authors: "Успенский Э. Н.",
-            favorite: true,
-            fileCover: "string",
-            fileName: "2.pdf",
-            fileBook: "",
+  create(book: CreateBookDto): Promise<BookDocument> {
+    const newBook = new this.BookModel(book);
+    return newBook.save();
+  }
+  public getAll(): Promise<BookDocument[]> {
+    return this.BookModel.find().exec();
+  }
 
-        },
-        {
-            id: "3",
-            title: "Крокодил Гена и его друзья",
-            description: "Однажды одинокий крокодил Гена решил изменить свою жизнь!",
-            authors: "Успенский Э. Н.",
-            favorite: true,
-            fileCover: "string",
-            fileName: "3.pdf",
-            fileBook: "",
-        },
-        {
-            id: "4",
-            title: "Рождественские повести",
-            description: "Рождественские повести были написаны Диккенсом в 40-х годах",
-            authors: "Диккенс Ч.",
-            favorite: false,
-            fileCover: "string",
-            fileName: "4.pdf",
-            fileBook: "",
-        },
-        {
-            id: "5",
-            title: "Сказки со смыслом",
-            description: "Собрание сказок",
-            authors: "Клевер Л",
-            favorite: false,
-            fileCover: "string",
-            fileName: "5.pdf",
-            fileBook: "",
-        }
-    ];
+  public update(
+    id: string,
+    data: CreateBookDto,
+  ): QueryWithHelpers<
+    HydratedDocument<BookDocument> | null,
+    HydratedDocument<BookDocument>,
+    {},
+    BookDocument
+  > {
+    return this.BookModel.findOneAndUpdate({ _id: id }, data);
+  }
 
-    create(book: Book) {
-        this.books.push(book);
-    }
-
-    findAll(): Book[] {
-        return this.books;
-    }
+  public delete(
+    id: string,
+  ): QueryWithHelpers<
+    HydratedDocument<BookDocument> | null,
+    HydratedDocument<BookDocument>,
+    {},
+    BookDocument
+  > {
+    return this.BookModel.findOneAndDelete({ _id: id });
+  }
 }
